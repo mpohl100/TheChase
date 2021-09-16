@@ -1,4 +1,4 @@
-#include "Lib.h"
+#include "Chase.h"
 
 #include <range/v3/all.hpp>
 
@@ -14,6 +14,11 @@ void say_hello(std::string name)
 Player::Player(double knows)
   : knows_(knows)
 {}
+
+bool Player::answer(int num) const
+{
+    return int(knows_ * 100) <= num;
+}
 
 Chase::Chase(double candidateChance, size_t numPlayers)
 {

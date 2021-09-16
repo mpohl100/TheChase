@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 namespace chase{
 
@@ -14,13 +15,15 @@ public:
     Player(Player&&) = default;
     Player& operator=(Player&&) = default;
 
+    bool answer(int num) const;
+
 private:
-    double knows_ = 0;
+    double knows_ = 0.0;
 };
 
 class Chase{
 public:
-    Chase(double candidateChance);
+    Chase(double candidateChance, size_t numPlayers);
     Chase() = default;
     Chase(Chase const&) = default;
     Chase& operator=(Chase const&) = default;

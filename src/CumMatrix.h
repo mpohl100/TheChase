@@ -4,6 +4,8 @@
 #include <numeric>
 #include <stdexcept>
 
+namespace evol {
+
 template<class T>
 class CumVector {
 	std::vector<T> val_;
@@ -113,3 +115,5 @@ public:
 	
 	size_t size() const { return val_.size(); }
 };
+
+}

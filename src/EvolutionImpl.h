@@ -3,6 +3,8 @@
 #include <map>
 #include <vector>
 
+namespace evol {
+
 template<class Chromosome, class Challenge>
 std::multimap<double, const Chromosome*>
 fitnessCalculation(std::vector<Chromosome> const& candidates, Challenge challenge)
@@ -57,3 +59,4 @@ void randomMutation(
 		offspringBeg->mutate();
 }
 
+}

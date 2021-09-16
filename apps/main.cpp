@@ -1,4 +1,4 @@
-#include "Lib.h"
+#include "Chase.h"
 #include <clara.hpp>
 
 #include <iostream>
@@ -23,7 +23,7 @@ int main(int argc, char** argv)
         exit(0);
     }
 
-    lib::say_hello(name);
+    chase::say_hello(name);
     return 0;
 }
 

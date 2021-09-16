@@ -21,6 +21,8 @@
 //	double score(Chromosome const& chromosome); the chromosome faces the challenge and its performance needs to be evaluated with a double (0 means bad, the higher the better the performance)
 //};
 
+namespace evol {
+
 template<class Chromosome, class Challenge>
 std::vector<Chromosome>
 evolution(
@@ -68,4 +70,6 @@ evolution(
 		randomMutation<Chromosome>(sep, candidates.end());
 	}
 	return candidates;
+}
+
 }
