@@ -42,7 +42,7 @@ public:
 private:
     double playQuickRound(Player const& player, evol::Rng const& rng);
     bool playEscapeRound(Player const& player, GamePlan const& gamePlan, evol::Rng const& rng);
-    size_t deduceStartingStep([[maybe_unused]] GamePlan const& gamePlan,[[maybe_unused]]  evol::Rng const& rng);
+    size_t deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng);
     std::pair<int,int> playPlayersFinal(std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng, double expectedNumQuestions, double stdDev);
     double playFinalRound(double gainedAmount, std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng);
     double play(GamePlan const& gamePlan, evol::Rng const& rng);

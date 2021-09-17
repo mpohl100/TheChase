@@ -96,7 +96,7 @@ bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, e
     return stepCandidate == 0 and stepChaser > 0;
 }
 
-size_t deduceStartingStep([[maybe_unused]] GamePlan const& gamePlan, [[maybe_unused]] evol::Rng const& rng)
+size_t Chase::deduceStartingStep([[maybe_unused]] GamePlan const& gamePlan, [[maybe_unused]] evol::Rng const& rng)
 {
     return 5;
 }
