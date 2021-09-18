@@ -32,6 +32,17 @@ bool Player::answerPossibilities(int num) const
     return eventHappens(knows_ + (1.0 - knows_) / 3, num);
 }
 
+size_t Player::deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng) const
+{
+    auto it = gamePlan.percentages.find(knows_);
+    if(it != gamePlan.percentages.end())
+    {
+        int num = rng.fetchUniform(0, 100, 1).top();
+        return it->second.startingStep(num);
+    }
+    return 5; // by default stay
+}
+
 void GamePlan::crossover(GamePlan const& other)
 {
     for(auto& [equity, percentage] : percentages)
@@ -69,7 +80,7 @@ std::string GamePlan::toString() const
     return ret;
 }
 
-size_t GamePlan::Percentages::startingStep(int num)
+size_t GamePlan::Percentages::startingStep(int num) const
 {
     if(eventHappens(gamble, num))
         return 6;
@@ -147,7 +158,7 @@ double Chase::playQuickRound(Player const& player, evol::Rng const& rng)
 bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, evol::Rng const& rng)
 {
     size_t stepChaser = 8;
-    size_t stepCandidate = deduceStartingStep(gamePlan, rng);
+    size_t stepCandidate = candidate.deduceStartingStep(gamePlan, rng);
     std::stack<int> randomProbabilites = rng.fetchUniform(0, 100, 25); // 25 Zufallszahlen sollten erstmal garantiert reichen
     auto fetchProb = [&randomProbabilites, &rng](){
         if(randomProbabilites.empty())
@@ -165,12 +176,6 @@ bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, e
             stepChaser--;
     }
     return stepCandidate == 0 and stepChaser > 0;
-}
-
-size_t Chase::deduceStartingStep([[maybe_unused]] GamePlan const& gamePlan, [[maybe_unused]] evol::Rng const& rng)
-{
-    // so far every player uses the same probability table, should be subject to change
-    return 5;
 }
 
 std::pair<int, int> Chase::playPlayersFinal(std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng, double expectedNumQuestions, double stdDev)
