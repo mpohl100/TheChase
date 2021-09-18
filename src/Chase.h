@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace chase{
 
@@ -25,7 +26,22 @@ private:
 };
 
 struct GamePlan { // Chromosome class
+    
+    void crossover(GamePlan const& other);
+    void mutate();
+    std::string toString() const;
 
+    struct Percentages{
+        double gamble = 0.2;
+        double stay = 0.6;
+        // double safety = 0.2 is calcualted implicitly
+        size_t startingStep(int num);
+        void normalize();
+        std::string toString() const;
+    };
+
+    //       Player equity
+    std::map<double, Percentages> percentages;
 };
 
 class Chase { // Challenge class

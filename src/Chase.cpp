@@ -2,7 +2,7 @@
 #include "Rng.h"
 
 #include <range/v3/all.hpp>
-
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 namespace chase{
@@ -16,16 +16,88 @@ Player::Player(double knows)
   : knows_(knows)
 {}
 
+bool eventHappens(double percentage, int num)
+{
+    return int(percentage * 100) <= num;
+}
+
 bool Player::answer(int num) const
 {
-    return int(knows_ * 100) <= num;
+    return eventHappens(knows_, num);
 }
 
 bool Player::answerPossibilities(int num) const
 {
     // we have a 1/3 chance of guessing correctly
-    return int((knows_ + (1.0 - knows_) / 3) * 100) <= num;
+    return eventHappens(knows_ + (1.0 - knows_) / 3, num);
 }
+
+void GamePlan::crossover(GamePlan const& other)
+{
+    for(auto& [equity, percentage] : percentages)
+    {
+        if(auto it = other.percentages.find(equity); it != other.percentages.end())
+        {
+            percentage.gamble += it->second.gamble;
+            percentage.gamble /= 2.0;
+            percentage.stay += it->second.stay;
+            percentage.stay /= 2.0;
+        }
+    }
+}
+
+void GamePlan::mutate()
+{
+    evol::Rng rng;
+    size_t elementToMutate = rng.fetchUniform(0, percentages.size()-1, 1).top();
+    auto it = percentages.begin();
+    std::advance(it, elementToMutate);
+    bool modifyGamble = rng.fetchUniform(0,1,1).top() == 0;
+    int modifyPercentage = rng.fetchUniform(-10,10,1).top();
+    if(modifyGamble)
+        it->second.gamble += modifyPercentage / 100.0;
+    else
+        it->second.stay += modifyPercentage / 100.0;
+    it->second.normalize();
+}
+
+std::string GamePlan::toString() const
+{
+    std::string ret = "\n";
+    for( const auto& [equity, percentage] : percentages)
+        ret += "player(" + std::to_string(equity*100) + "): " + percentage.toString() + "\n"; 
+    return ret;
+}
+
+size_t GamePlan::Percentages::startingStep(int num)
+{
+    if(eventHappens(gamble, num))
+        return 6;
+    else if(eventHappens(gamble+stay, num))
+        return 5;
+    else
+        return 4;
+}
+
+void GamePlan::Percentages::normalize()
+{
+    if(gamble < 0) gamble = 0;
+    if(stay < 0) stay = 0;
+    if(gamble + stay > 1)
+    {
+        gamble *= 1.0 / (gamble + stay);
+        stay *= 1.0 / (gamble + stay); 
+    }
+}
+
+std::string GamePlan::Percentages::toString() const
+{
+    std::string ret;
+    ret += "gamble(" + std::to_string(gamble*100) + "%), ";
+    ret += "stay(" + std::to_string(stay*100) + "%), ";
+    ret += "safety(" + std::to_string((1-gamble-stay)*100) + "%)";
+    return ret;
+ }
 
 Chase::Chase(double candidateChance, size_t numPlayers, size_t numRounds)
     : numRounds_(numRounds)
@@ -77,20 +149,19 @@ bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, e
     size_t stepChaser = 8;
     size_t stepCandidate = deduceStartingStep(gamePlan, rng);
     std::stack<int> randomProbabilites = rng.fetchUniform(0, 100, 25); // 25 Zufallszahlen sollten erstmal garantiert reichen
+    auto fetchProb = [&randomProbabilites, &rng](){
+        if(randomProbabilites.empty())
+            randomProbabilites = rng.fetchUniform(0, 100, 25);
+        return randomProbabilites.top(); 
+    };
     while(stepChaser > 0 or stepCandidate > 0 or stepChaser > stepCandidate)
     {
         // play candidate question
-        if(randomProbabilites.empty())
-            randomProbabilites = rng.fetchUniform(0, 100, 25);
-        int randomProb = randomProbabilites.top();
-        if(candidate.answerPossibilities(randomProb))
+        if(candidate.answerPossibilities(fetchProb()))
             stepCandidate--;
 
         // play chaser question
-        if(randomProbabilites.empty())
-            randomProbabilites = rng.fetchUniform(0, 100, 25);
-        randomProb = randomProbabilites.top();
-        if(chaser_.answerPossibilities(randomProb))
+        if(chaser_.answerPossibilities(fetchProb()))
             stepChaser--;
     }
     return stepCandidate == 0 and stepChaser > 0;
@@ -98,6 +169,7 @@ bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, e
 
 size_t Chase::deduceStartingStep([[maybe_unused]] GamePlan const& gamePlan, [[maybe_unused]] evol::Rng const& rng)
 {
+    // so far every player uses the same probability table, should be subject to change
     return 5;
 }
 
