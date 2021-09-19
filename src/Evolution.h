@@ -14,6 +14,7 @@
 //struct Chromosome {
 //	void crossover(Chromosome const& other); make sure to randomly choose what data members should be taken from this or other
 //	void mutate(); make sure to not randomly mutate too much of your chromosome type (only one data member at a time is recommended)
+// std::string toString() const; provide some output for the shape of the chromosome
 //};
 
 // These functions must be added to your challenge type
@@ -42,7 +43,7 @@ evolution(
 			std::cout << "generation nr. " << i + 1 << " / " << num_generations << '\n';
 			if (log >= 2) {
 				for (auto& f : fitness)
-					std::cout << "  fitness: " << f.first << '\n';
+					std::cout << "  fitness: " << f.first << '\n' << f.second->toString() << '\n';
 				std::cout << '\n';
 			}
 		}

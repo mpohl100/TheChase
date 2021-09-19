@@ -1,4 +1,4 @@
-#include "Chase.h"
+#include "Analysis.h"
 #include <clara.hpp>
 
 #include <iostream>
@@ -23,7 +23,9 @@ int main(int argc, char** argv)
         exit(0);
     }
 
-    chase::say_hello(name);
+    chase::SimpleAnalysisOptions options;
+    options.dontPlayFinal = true;
+    chase::simpleChaseAnalysis(options);
     return 0;
 }
 

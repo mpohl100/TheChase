@@ -18,7 +18,8 @@ Player::Player(double knows)
 
 bool eventHappens(double percentage, int num)
 {
-    return int(percentage * 100) <= num;
+    bool eventHappens = num <= int(percentage * 100);
+    return eventHappens;
 }
 
 bool Player::answer(int num) const
@@ -110,8 +111,10 @@ std::string GamePlan::Percentages::toString() const
     return ret;
  }
 
-Chase::Chase(double candidateChance, size_t numPlayers, size_t numRounds)
+Chase::Chase(double candidateChance, size_t numPlayers, size_t numRounds, double chaserFactor, bool dontPlayFinal)
     : numRounds_(numRounds)
+    , chaserFactor_(chaserFactor)
+    , dontPlayFinal_(dontPlayFinal)
 {
     for(size_t i = 0; i < numPlayers; ++i)
         candidates_.emplace_back(candidateChance);
@@ -135,12 +138,14 @@ double Chase::play(GamePlan const& gamePlan, evol::Rng const& rng)
     for(const Player& candidate : candidates_)
     {
         double playerAmount = playQuickRound(candidate, rng);
-        if(playEscapeRound(candidate, gamePlan, rng))
+        if(playEscapeRound(candidate, gamePlan, rng, playerAmount))
         {
             result += playerAmount;
             finalPlayers.push_back(candidate);
         }
     }
+    if(dontPlayFinal_)
+        return result;
     return playFinalRound(result, finalPlayers, rng);
 }
 
@@ -150,22 +155,37 @@ double Chase::playQuickRound(Player const& player, evol::Rng const& rng)
     std::stack randomProbabilites = rng.fetchUniform(0, 100, numQuestions);
     size_t numAnswered = 0;
     while(not randomProbabilites.empty())
+    {
         if(player.answer(randomProbabilites.top()))
             ++numAnswered;
-    return numAnswered * 500.0; // 500€
+        randomProbabilites.pop();
+    }
+    double result = numAnswered * 500.0; // 500€
+    if(numAnswered == 0)
+        result = 500.0;
+    return result;
 }
 
-bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, evol::Rng const& rng)
+bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, evol::Rng const& rng, double& amount)
 {
     size_t stepChaser = 8;
     size_t stepCandidate = candidate.deduceStartingStep(gamePlan, rng);
+    switch(stepCandidate)
+    {
+        case 4: amount *= 1 / chaserFactor_; break;
+        case 5: break;
+        case 6: amount *= chaserFactor_; break;
+        default: break;
+    }
     std::stack<int> randomProbabilites = rng.fetchUniform(0, 100, 25); // 25 Zufallszahlen sollten erstmal garantiert reichen
     auto fetchProb = [&randomProbabilites, &rng](){
         if(randomProbabilites.empty())
             randomProbabilites = rng.fetchUniform(0, 100, 25);
-        return randomProbabilites.top(); 
+        int prob = randomProbabilites.top(); 
+        randomProbabilites.pop();
+        return prob;
     };
-    while(stepChaser > 0 or stepCandidate > 0 or stepChaser > stepCandidate)
+    while(true)
     {
         // play candidate question
         if(candidate.answerPossibilities(fetchProb()))
@@ -174,6 +194,8 @@ bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, e
         // play chaser question
         if(chaser_.answerPossibilities(fetchProb()))
             stepChaser--;
+        if(stepChaser == 0 or stepCandidate == 0 or stepChaser <= stepCandidate)
+            break;
     }
     return stepCandidate == 0 and stepChaser > 0;
 }
@@ -186,7 +208,9 @@ std::pair<int, int> Chase::playPlayersFinal(std::vector<std::reference_wrapper<c
     for(size_t i = 0; i < numPlayerQuestions; ++i)
     {
         size_t count = std::count_if(finalPlayers.begin(), finalPlayers.end(), [&randomProbabilites](const auto& player){
-            return player.get().answer(randomProbabilites.top());
+            bool answer = player.get().answer(randomProbabilites.top());
+            randomProbabilites.pop();
+            return answer;
         });
         if(count > 0)
             playerScore++;
@@ -196,6 +220,8 @@ std::pair<int, int> Chase::playPlayersFinal(std::vector<std::reference_wrapper<c
 
 double Chase::playFinalRound(double gainedAmount, std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng)
 {
+    if(finalPlayers.size() == 0)
+        return 0.0;
     // play candidates final
     int playerScore = finalPlayers.size(); // candidates start with the amount of candidates as points
     playerScore += playPlayersFinal(finalPlayers, rng, 20.0, 2.0).first;
