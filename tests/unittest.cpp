@@ -4,9 +4,8 @@
 
 namespace {
 
-TEST_CASE("Lib", "[lib]"){
+TEST_CASE("Chase", "[chase]"){
     SECTION("Example"){
-        chase::say_hello("World");
         CHECK(true);
     }
 }

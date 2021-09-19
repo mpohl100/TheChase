@@ -35,13 +35,18 @@ bool Player::answerPossibilities(int num) const
 
 size_t Player::deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng) const
 {
-    auto it = gamePlan.percentages.find(knows_);
+    auto it = gamePlan.percentages.find(this);
     if(it != gamePlan.percentages.end())
     {
         int num = rng.fetchUniform(0, 100, 1).top();
         return it->second.startingStep(num);
     }
     return 5; // by default stay
+}
+
+double Player::equity() const
+{
+    return knows_;
 }
 
 void GamePlan::crossover(GamePlan const& other)
@@ -76,8 +81,8 @@ void GamePlan::mutate()
 std::string GamePlan::toString() const
 {
     std::string ret = "\n";
-    for( const auto& [equity, percentage] : percentages)
-        ret += "player(" + std::to_string(equity*100) + "): " + percentage.toString() + "\n"; 
+    for( const auto& [candidate, percentage] : percentages)
+        ret += "candidate(" + std::to_string(candidate->equity()*100) + "%): " + percentage.toString() + "\n"; 
     return ret;
 }
 
@@ -129,6 +134,11 @@ double Chase::score(GamePlan const& gamePlan)
     for(size_t i = 0; i < numRounds_; ++i)
         ret += play(gamePlan, rng);
     return ret / double(numRounds_);
+}
+
+std::vector<Player> const& Chase::candidates() const
+{
+    return candidates_;
 }
 
 double Chase::play(GamePlan const& gamePlan, evol::Rng const& rng)

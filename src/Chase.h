@@ -6,7 +6,7 @@
 
 namespace chase{
 
-void say_hello(std::string name);
+class Player;
 
 struct GamePlan { // Chromosome class
     
@@ -24,7 +24,7 @@ struct GamePlan { // Chromosome class
     };
 
     //       Player equity
-    std::map<double, Percentages> percentages;
+    std::map<const Player* const, Percentages> percentages;
 };
 
 class Player{
@@ -40,6 +40,7 @@ public:
     bool answer(int num) const;
     bool answerPossibilities(int num) const;
     size_t deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng) const;
+    double equity() const;
 
 private:
     double knows_ = 0.0;
@@ -55,7 +56,7 @@ public:
     Chase& operator=(Chase&&) = default;
 
     double score(GamePlan const& gamePlan);
-
+    std::vector<Player> const& candidates() const;
 private:
     double playQuickRound(Player const& player, evol::Rng const& rng);
     bool playEscapeRound(Player const& player, GamePlan const& gamePlan, evol::Rng const& rng, double& amount);
