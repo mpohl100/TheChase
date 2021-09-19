@@ -1,12 +1,15 @@
+#pragma once
+
 #include "Rng.h"
 
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 
 namespace chase{
 
-class Player;
+class Chase;
 
 struct GamePlan { // Chromosome class
     
@@ -23,13 +26,14 @@ struct GamePlan { // Chromosome class
         std::string toString() const;
     };
 
-    //       Player equity
-    std::map<const Player* const, Percentages> percentages;
+    //       Player index
+    std::map<size_t, Percentages> percentages;
+    std::shared_ptr<Chase> chase;
 };
 
 class Player{
 public:
-    Player(double knows);
+    Player(double knows, size_t index);
     
     Player() = default;
     Player(Player const&) = default;
@@ -41,9 +45,11 @@ public:
     bool answerPossibilities(int num) const;
     size_t deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng) const;
     double equity() const;
+    size_t index() const;
 
 private:
     double knows_ = 0.0;
+    size_t index_ = 0;
 };
 
 class Chase { // Challenge class

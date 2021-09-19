@@ -2,23 +2,83 @@
 #include "Evolution.h"
 #include "Chase.h"
 
+#include <fstream>
+
 namespace chase {
 
-void simpleChaseAnalysis(SimpleAnalysisOptions const& options)
+SimpleResult simpleChaseAnalysis(SimpleAnalysisOptions const& options)
 {
-    Chase chase(options.playerEquity, options.nbPlayers, options.nbRounds, options.chaserFactor, options.dontPlayFinal);
+    auto chase = std::make_shared<Chase>(options.playerEquity, options.nbPlayers, options.nbRounds, options.chaserFactor, options.dontPlayFinal);
     std::vector<GamePlan> gamePlans(20);
     std::generate(gamePlans.begin(), gamePlans.end(), [&chase](){
         GamePlan plan;
-        for(const Player& candidate : chase.candidates())
-            plan.percentages[&candidate] = {};
+        plan.chase = chase;
+        for(const Player& candidate : chase->candidates())
+            plan.percentages[candidate.index()] = {};
         return plan;
     } );
     double winningAverageWin = 0;
 
 
-    auto winningPopulation = evol::evolution(gamePlans, options.nbGenerations, chase, winningAverageWin, options.logLevel);
-    std::cout << "\nAvg. win " << winningAverageWin << ", \ngame plan: " << winningPopulation.front().toString() << '\n';
+    auto winningPopulation = evol::evolution(gamePlans, options.nbGenerations, *chase, winningAverageWin, options.logLevel);
+    //std::cout << "\nAvg. win " << winningAverageWin << ", \ngame plan: " << winningPopulation.front().toString() << '\n';
+    return {winningPopulation.front(), winningAverageWin};
 }
+
+void singlePlayerAnalysis(SinglePlayerAnalysis& analysis)
+{
+    for( double playerEquity = analysis.analysisRange.playerEquityParams[0]; 
+        playerEquity <= analysis.analysisRange.playerEquityParams[1];
+        playerEquity += analysis.analysisRange.playerEquityParams[2])
+    {
+        for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
+            chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
+            chaserFactor += analysis.analysisRange.chaserFactorParams[2])
+        {
+            SimpleAnalysisOptions options;
+            options.dontPlayFinal = true;
+            options.playerEquity = playerEquity;
+            options.nbPlayers = 1;
+            options.chaserFactor = chaserFactor;
+            options.logLevel = 1;
+            options.nbGenerations = 100;
+            options.nbRounds = 500;
+            SimpleResult result = simpleChaseAnalysis(options);
+            std::cout << "\nAvg. win " << result.avgWin << ", \ngame plan: " << result.gamePlan.toString() << '\n';
+            analysis.results[{playerEquity, chaserFactor}] = result;
+        }
+    }
+}
+
+void dumpSinglePlayerResults(SinglePlayerAnalysis& analysis, std::string const& filename)
+{
+    std::ofstream outfile(filename.c_str());
+    // header line
+    outfile << ";";
+    for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
+        chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
+        chaserFactor += analysis.analysisRange.chaserFactorParams[2])
+    {
+        outfile << chaserFactor << ';';
+    }
+    outfile << '\n';
+
+    for( double playerEquity = analysis.analysisRange.playerEquityParams[0]; 
+        playerEquity <= analysis.analysisRange.playerEquityParams[1];
+        playerEquity += analysis.analysisRange.playerEquityParams[2])
+    {
+        outfile << playerEquity << ';';
+        for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
+            chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
+            chaserFactor += analysis.analysisRange.chaserFactorParams[2])
+        {
+            SimpleResult& result = analysis.results[{playerEquity, chaserFactor}];
+            auto percentages = result.gamePlan.percentages.begin()->second;
+            outfile << result.avgWin << "€|" << percentages.gamble * 100 << "%|" << percentages.stay * 100 << "%|" << (1 - percentages.gamble - percentages.stay) * 100 << "%;";
+        }
+        outfile << '\n';
+    }
+}
+
 
 }

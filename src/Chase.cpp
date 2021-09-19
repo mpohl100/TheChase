@@ -12,8 +12,9 @@ void say_hello(std::string name)
     std::cout << "Hello, " << name << "!" << '\n';
 }
 
-Player::Player(double knows)
+Player::Player(double knows, size_t index)
   : knows_(knows)
+  , index_(index)
 {}
 
 bool eventHappens(double percentage, int num)
@@ -35,7 +36,7 @@ bool Player::answerPossibilities(int num) const
 
 size_t Player::deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng) const
 {
-    auto it = gamePlan.percentages.find(this);
+    auto it = gamePlan.percentages.find(index());
     if(it != gamePlan.percentages.end())
     {
         int num = rng.fetchUniform(0, 100, 1).top();
@@ -47,6 +48,11 @@ size_t Player::deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng
 double Player::equity() const
 {
     return knows_;
+}
+
+size_t Player::index() const
+{
+    return index_;
 }
 
 void GamePlan::crossover(GamePlan const& other)
@@ -81,8 +87,8 @@ void GamePlan::mutate()
 std::string GamePlan::toString() const
 {
     std::string ret = "\n";
-    for( const auto& [candidate, percentage] : percentages)
-        ret += "candidate(" + std::to_string(candidate->equity()*100) + "%): " + percentage.toString() + "\n"; 
+    for( const auto& [index, percentage] : percentages)
+        ret += "candidate " + std::to_string(index+1) + "(" + std::to_string(chase->candidates()[index].equity()*100) + "%): " + percentage.toString() + "\n"; 
     return ret;
 }
 
@@ -122,8 +128,8 @@ Chase::Chase(double candidateChance, size_t numPlayers, size_t numRounds, double
     , dontPlayFinal_(dontPlayFinal)
 {
     for(size_t i = 0; i < numPlayers; ++i)
-        candidates_.emplace_back(candidateChance);
-    chaser_ = Player(0.8);
+        candidates_.emplace_back(candidateChance, i);
+    chaser_ = Player(0.8, 0);
 }
 
 

@@ -23,9 +23,15 @@ int main(int argc, char** argv)
         exit(0);
     }
 
+#if 0
     chase::SimpleAnalysisOptions options;
     options.dontPlayFinal = true;
+    options.nbGenerations = 500;
     chase::simpleChaseAnalysis(options);
+#endif
+    chase::SinglePlayerAnalysis analysis;
+    chase::singlePlayerAnalysis(analysis);
+    chase::dumpSinglePlayerResults(analysis, "SinglePlayerAnalysis.csv");
     return 0;
 }
 

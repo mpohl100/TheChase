@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Chase.h"
+
 #include <stddef.h>
+#include <map>
 
 namespace chase{
 
@@ -14,6 +17,24 @@ struct SimpleAnalysisOptions{
     bool dontPlayFinal = false;
 };
 
-void simpleChaseAnalysis(SimpleAnalysisOptions const& options);
+struct SimpleResult{
+    GamePlan gamePlan;
+    double avgWin;
+};
+
+SimpleResult simpleChaseAnalysis(SimpleAnalysisOptions const& options);
+
+struct SinglePlayerAnalysis{
+    struct AnalysisRange{
+        std::array<double,3> playerEquityParams = {{0, 1.0, 0.1}};
+        std::array<double,3> chaserFactorParams = {{1.0, 5.0, 0.5}};
+    };
+    AnalysisRange analysisRange;
+    std::map<std::pair<double, double>, SimpleResult> results;
+};
+
+void singlePlayerAnalysis(SinglePlayerAnalysis& analysis);
+
+void dumpSinglePlayerResults(SinglePlayerAnalysis& analysis, std::string const& filename);
 
 }
