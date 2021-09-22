@@ -29,7 +29,7 @@ std::vector<Chromosome>
 evolution(
 	std::vector<Chromosome> population, // feed with a few (20 recommended) random chromosomes
 	int num_generations, // the number of generations to cross
-	Challenge challenge, // the challenge 
+	Challenge const& challenge, // the challenge 
 	double& winningAccuracy, // the winning performance is an out parameter
 	int log = 1 // logging level to see how far the algorithm progressed
 )
