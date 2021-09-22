@@ -22,11 +22,12 @@ SimpleResult simpleChaseAnalysis(SimpleAnalysisOptions const& options)
 
     auto winningPopulation = evol::evolution(gamePlans, options.nbGenerations, *chase, winningAverageWin, options.logLevel);
     //std::cout << "\nAvg. win " << winningAverageWin << ", \ngame plan: " << winningPopulation.front().toString() << '\n';
-    return {winningPopulation.front(), winningAverageWin};
+    return {winningPopulation.front(), winningAverageWin, chase->numGames()};
 }
 
 void singlePlayerAnalysis(SinglePlayerAnalysis& analysis)
 {
+    size_t numGames = 0;
     for( double playerEquity = analysis.analysisRange.playerEquityParams[0]; 
         playerEquity <= analysis.analysisRange.playerEquityParams[1];
         playerEquity += analysis.analysisRange.playerEquityParams[2])
@@ -44,10 +45,12 @@ void singlePlayerAnalysis(SinglePlayerAnalysis& analysis)
             options.nbGenerations = 100;
             options.nbRounds = 500;
             SimpleResult result = simpleChaseAnalysis(options);
+            numGames += result.numGames;
             std::cout << "\nAvg. win " << result.avgWin << ", \ngame plan: " << result.gamePlan.toString() << '\n';
             analysis.results[{playerEquity, chaserFactor}] = result;
         }
     }
+    std::cout << "Nb. of games: " << numGames << '\n';
 }
 
 void dumpSinglePlayerResults(SinglePlayerAnalysis& analysis, std::string const& filename)

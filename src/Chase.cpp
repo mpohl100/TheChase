@@ -108,8 +108,9 @@ void GamePlan::Percentages::normalize()
     if(stay < 0) stay = 0;
     if(gamble + stay > 1)
     {
-        gamble *= 1.0 / (gamble + stay);
-        stay *= 1.0 / (gamble + stay); 
+        double div = gamble + stay;
+        gamble *= 1.0 / div;
+        stay *= 1.0 / div; 
     }
 }
 
@@ -147,9 +148,15 @@ std::vector<Player> const& Chase::candidates() const
     return candidates_;
 }
 
+size_t Chase::numGames() const
+{
+    return numGames_;
+}
+
 double Chase::play(GamePlan const& gamePlan, evol::Rng const& rng)
 {
     double result = 0;
+    numGames_++;
     std::vector<std::reference_wrapper<const Player>> finalPlayers;
     for(const Player& candidate : candidates_)
     {

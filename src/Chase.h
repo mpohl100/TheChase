@@ -63,6 +63,7 @@ public:
 
     double score(GamePlan const& gamePlan);
     std::vector<Player> const& candidates() const;
+    size_t numGames() const;
 private:
     double playQuickRound(Player const& player, evol::Rng const& rng);
     bool playEscapeRound(Player const& player, GamePlan const& gamePlan, evol::Rng const& rng, double& amount);
@@ -75,6 +76,7 @@ private:
     size_t numRounds_;
     double chaserFactor_ = 3.0;
     bool dontPlayFinal_ = false;
+    size_t numGames_ = 0;
 };
 
 }

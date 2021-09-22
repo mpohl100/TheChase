@@ -20,6 +20,7 @@ struct SimpleAnalysisOptions{
 struct SimpleResult{
     GamePlan gamePlan;
     double avgWin;
+    size_t numGames = 0;
 };
 
 SimpleResult simpleChaseAnalysis(SimpleAnalysisOptions const& options);
