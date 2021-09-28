@@ -1,6 +1,7 @@
 #include "Analysis.h"
-#include "Evolution.h"
 #include "Chase.h"
+
+#include <evol/Evolution.h>
 
 #include <fstream>
 

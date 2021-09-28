@@ -1,7 +1,6 @@
 #include "Chase.h"
-#include "Rng.h"
+#include <evol/Rng.h>
 
-#include <range/v3/all.hpp>
 #include <algorithm>
 #include <iostream>
 #include <cmath>
@@ -11,117 +10,6 @@ void say_hello(std::string name)
 {
     std::cout << "Hello, " << name << "!" << '\n';
 }
-
-Player::Player(double knows, size_t index)
-  : knows_(knows)
-  , index_(index)
-{}
-
-bool eventHappens(double percentage, int num)
-{
-    bool eventHappens = num <= int(percentage * 100);
-    return eventHappens;
-}
-
-bool Player::answer(int num) const
-{
-    return eventHappens(knows_, num);
-}
-
-bool Player::answerPossibilities(int num) const
-{
-    // we have a 1/3 chance of guessing correctly
-    return eventHappens(knows_ + (1.0 - knows_) / 3, num);
-}
-
-size_t Player::deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng) const
-{
-    auto it = gamePlan.percentages.find(index());
-    if(it != gamePlan.percentages.end())
-    {
-        int num = rng.fetchUniform(0, 100, 1).top();
-        return it->second.startingStep(num);
-    }
-    return 5; // by default stay
-}
-
-double Player::equity() const
-{
-    return knows_;
-}
-
-size_t Player::index() const
-{
-    return index_;
-}
-
-void GamePlan::crossover(GamePlan const& other)
-{
-    for(auto& [equity, percentage] : percentages)
-    {
-        if(auto it = other.percentages.find(equity); it != other.percentages.end())
-        {
-            percentage.gamble += it->second.gamble;
-            percentage.gamble /= 2.0;
-            percentage.stay += it->second.stay;
-            percentage.stay /= 2.0;
-        }
-    }
-}
-
-void GamePlan::mutate()
-{
-    evol::Rng rng;
-    size_t elementToMutate = rng.fetchUniform(0, percentages.size()-1, 1).top();
-    auto it = percentages.begin();
-    std::advance(it, elementToMutate);
-    bool modifyGamble = rng.fetchUniform(0,1,1).top() == 0;
-    int modifyPercentage = rng.fetchUniform(-10,10,1).top();
-    if(modifyGamble)
-        it->second.gamble += modifyPercentage / 100.0;
-    else
-        it->second.stay += modifyPercentage / 100.0;
-    it->second.normalize();
-}
-
-std::string GamePlan::toString() const
-{
-    std::string ret = "\n";
-    for( const auto& [index, percentage] : percentages)
-        ret += "candidate " + std::to_string(index+1) + "(" + std::to_string(chase->candidates()[index].equity()*100) + "%): " + percentage.toString() + "\n"; 
-    return ret;
-}
-
-size_t GamePlan::Percentages::startingStep(int num) const
-{
-    if(eventHappens(gamble, num))
-        return 6;
-    else if(eventHappens(gamble+stay, num))
-        return 5;
-    else
-        return 4;
-}
-
-void GamePlan::Percentages::normalize()
-{
-    if(gamble < 0) gamble = 0;
-    if(stay < 0) stay = 0;
-    if(gamble + stay > 1)
-    {
-        double div = gamble + stay;
-        gamble *= 1.0 / div;
-        stay *= 1.0 / div; 
-    }
-}
-
-std::string GamePlan::Percentages::toString() const
-{
-    std::string ret;
-    ret += "gamble(" + std::to_string(gamble*100) + "%), ";
-    ret += "stay(" + std::to_string(stay*100) + "%), ";
-    ret += "safety(" + std::to_string((1-gamble-stay)*100) + "%)";
-    return ret;
- }
 
 Chase::Chase(double candidateChance, size_t numPlayers, size_t numRounds, double chaserFactor, bool dontPlayFinal)
     : numRounds_(numRounds)
@@ -211,11 +99,11 @@ bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, e
     while(true)
     {
         // play candidate question
-        if(candidate.answerPossibilities(fetchProb()))
+        if(candidate.answer(fetchProb()))
             stepCandidate--;
 
         // play chaser question
-        if(chaser_.answerPossibilities(fetchProb()))
+        if(chaser_.answer(fetchProb()))
             stepChaser--;
         if(stepChaser == 0 or stepCandidate == 0 or stepChaser <= stepCandidate)
             break;

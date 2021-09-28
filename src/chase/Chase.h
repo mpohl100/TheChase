@@ -1,56 +1,13 @@
 #pragma once
 
-#include "Rng.h"
+#include "GamePlan.h"
+#include "Player.h"
 
-#include <string>
+#include <evol/Rng.h>
+
 #include <vector>
-#include <map>
-#include <memory>
 
 namespace chase{
-
-class Chase;
-
-struct GamePlan { // Chromosome class
-    
-    void crossover(GamePlan const& other);
-    void mutate();
-    std::string toString() const;
-
-    struct Percentages{
-        double gamble = 0.2;
-        double stay = 0.6;
-        // double safety = 0.2 is calcualted implicitly
-        size_t startingStep(int num) const;
-        void normalize();
-        std::string toString() const;
-    };
-
-    //       Player index
-    std::map<size_t, Percentages> percentages;
-    std::shared_ptr<Chase> chase;
-};
-
-class Player{
-public:
-    Player(double knows, size_t index);
-    
-    Player() = default;
-    Player(Player const&) = default;
-    Player& operator=(Player const&) = default;
-    Player(Player&&) = default;
-    Player& operator=(Player&&) = default;
-
-    bool answer(int num) const;
-    bool answerPossibilities(int num) const;
-    size_t deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng) const;
-    double equity() const;
-    size_t index() const;
-
-private:
-    double knows_ = 0.0;
-    size_t index_ = 0;
-};
 
 class Chase { // Challenge class
 public:

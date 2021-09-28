@@ -1,4 +1,4 @@
-#include "Analysis.h"
+#include <chase/Analysis.h>
 #include <clara.hpp>
 
 #include <iostream>

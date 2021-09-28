@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "Chase.h"
+#include <chase/Chase.h>
 
 namespace {
 
