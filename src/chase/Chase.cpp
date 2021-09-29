@@ -25,7 +25,7 @@ Chase::Chase(double candidateChance, size_t numPlayers, size_t numRounds, double
 double Chase::score(GamePlan const& gamePlan) const
 {
     double ret = 0;
-    evol::Rng rng;
+    static evol::Rng rng;
     for(size_t i = 0; i < numRounds_; ++i)
         ret += play(gamePlan, rng);
     return ret / double(numRounds_);
