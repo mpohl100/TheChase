@@ -22,7 +22,7 @@ Chase::Chase(double candidateChance, size_t numPlayers, size_t numRounds, double
 }
 
 
-double Chase::score(GamePlan const& gamePlan)
+double Chase::score(GamePlan const& gamePlan) const
 {
     double ret = 0;
     evol::Rng rng;
@@ -41,7 +41,7 @@ size_t Chase::numGames() const
     return numGames_;
 }
 
-double Chase::play(GamePlan const& gamePlan, evol::Rng const& rng)
+double Chase::play(GamePlan const& gamePlan, evol::Rng const& rng) const
 {
     double result = 0;
     numGames_++;
@@ -60,7 +60,7 @@ double Chase::play(GamePlan const& gamePlan, evol::Rng const& rng)
     return playFinalRound(result, finalPlayers, rng);
 }
 
-double Chase::playQuickRound(Player const& player, evol::Rng const& rng)
+double Chase::playQuickRound(Player const& player, evol::Rng const& rng) const
 {
     size_t numQuestions = size_t(int(std::round(rng.fetchNormal(10.5, 0.5, 1).top())));
     std::stack randomProbabilites = rng.fetchUniform(0, 100, numQuestions);
@@ -77,7 +77,7 @@ double Chase::playQuickRound(Player const& player, evol::Rng const& rng)
     return result;
 }
 
-bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, evol::Rng const& rng, double& amount)
+bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, evol::Rng const& rng, double& amount) const
 {
     size_t stepChaser = 8;
     size_t stepCandidate = candidate.deduceStartingStep(gamePlan, rng);
@@ -111,7 +111,7 @@ bool Chase::playEscapeRound(Player const& candidate, GamePlan const& gamePlan, e
     return stepCandidate == 0 and stepChaser > 0;
 }
 
-std::pair<int, int> Chase::playPlayersFinal(std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng, double expectedNumQuestions, double stdDev)
+std::pair<int, int> Chase::playPlayersFinal(std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng, double expectedNumQuestions, double stdDev) const
 {
     int playerScore = 0;
     size_t numPlayerQuestions = rng.fetchNormal(expectedNumQuestions, stdDev, 1).top();
@@ -129,7 +129,7 @@ std::pair<int, int> Chase::playPlayersFinal(std::vector<std::reference_wrapper<c
     return { playerScore, numPlayerQuestions };
 }
 
-double Chase::playFinalRound(double gainedAmount, std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng)
+double Chase::playFinalRound(double gainedAmount, std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng) const
 {
     if(finalPlayers.size() == 0)
         return 0.0;

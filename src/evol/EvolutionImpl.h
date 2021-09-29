@@ -1,25 +1,28 @@
 #pragma once
 
+#include "EvolutionConcepts.h"
+
 #include <map>
 #include <vector>
 
 namespace evol {
 
-template<class Chromosome, class Challenge>
-std::multimap<double, const Chromosome*>
-fitnessCalculation(std::vector<Chromosome> const& candidates, Challenge challenge)
+template<Chromosome Chrom, class Chall>
+requires Challenge<Chall, Chrom>
+std::multimap<double, const Chrom*>
+fitnessCalculation(std::vector<Chrom> const& candidates, Chall const& challenge)
 {
-	std::multimap<double, const Chromosome*> ret;
+	std::multimap<double, const Chrom*> ret;
 	for (auto& cand : candidates)
 		ret.insert(std::make_pair(challenge.score(cand), &cand));
 	return ret;
 }
 
-template<class Chromosome>
-std::vector<const Chromosome*>
-selectMatingPool(std::multimap<double, const Chromosome*> const& fitness, int sep = 2)
+template<Chromosome Chrom>
+std::vector<const Chrom*>
+selectMatingPool(std::multimap<double, const Chrom*> const& fitness, int sep = 2)
 {
-	std::vector<const Chromosome*> ret;
+	std::vector<const Chrom*> ret;
 	int i = 0;
 	for (auto it = fitness.rbegin(); it != fitness.rend(); ++it)
 	{
@@ -30,13 +33,13 @@ selectMatingPool(std::multimap<double, const Chromosome*> const& fitness, int se
 	return ret;
 }
 
-template<class Chromosome>
+template<Chromosome Chrom>
 void
 crossover(
-	typename std::vector<Chromosome>::iterator parentsBeg,
-	typename std::vector<Chromosome>::iterator parentsEnd,
-	typename std::vector<Chromosome>::iterator offspringBeg,
-	typename std::vector<Chromosome>::iterator offspringEnd
+	typename std::vector<Chrom>::iterator parentsBeg,
+	typename std::vector<Chrom>::iterator parentsEnd,
+	typename std::vector<Chrom>::iterator offspringBeg,
+	typename std::vector<Chrom>::iterator offspringEnd
 )
 {
 	int dadIdx = 0; // the winner gets to spread his genes everywhere
@@ -49,10 +52,10 @@ crossover(
 	}
 }
 
-template<class Chromosome>
+template<Chromosome Chrom>
 void randomMutation(
-	typename std::vector<Chromosome>::iterator offspringBeg,
-	typename std::vector<Chromosome>::iterator offspringEnd
+	typename std::vector<Chrom>::iterator offspringBeg,
+	typename std::vector<Chrom>::iterator offspringEnd
 )
 {
 	for (; offspringBeg != offspringEnd; ++offspringBeg)
