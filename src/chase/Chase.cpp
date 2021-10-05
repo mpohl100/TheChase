@@ -21,6 +21,19 @@ Chase::Chase(double candidateChance, size_t numPlayers, size_t numRounds, double
     chaser_ = Player(0.8, 0);
 }
 
+Chase::Chase(std::vector<double> const& candidateChances, size_t numRounds, double chaserFactor, std::vector<int> const& path)
+    : numRounds_(numRounds)
+    , chaserFactor_(chaserFactor)
+    , dontPlayFinal_(false)
+    , path_(path)
+{
+    size_t i = 0;
+    for(const auto& candidateChance : candidateChances)
+        candidates_.emplace_back(candidateChance, i++);
+    chaser_ = Player(0.8, 0);
+}
+
+
 
 double Chase::score(GamePlan const& gamePlan) const
 {
@@ -43,21 +56,47 @@ size_t Chase::numGames() const
 
 double Chase::play(GamePlan const& gamePlan, evol::Rng const& rng) const
 {
-    double result = 0;
+    if(not gameState_)
+        createGameState(rng);
+    // copy is a must
+    GameState gameState = *gameState_;
     numGames_++;
-    std::vector<std::reference_wrapper<const Player>> finalPlayers;
-    for(const Player& candidate : candidates_)
+    for(size_t i = path_.size(); i < candidates_.size(); ++i)
     {
+        const Player& candidate = candidates_[i];
         double playerAmount = playQuickRound(candidate, rng);
         if(playEscapeRound(candidate, gamePlan, rng, playerAmount))
         {
-            result += playerAmount;
-            finalPlayers.push_back(candidate);
+            gameState.result += playerAmount;
+            gameState.finalPlayers.push_back(candidate);
         }
     }
     if(dontPlayFinal_)
-        return result;
-    return playFinalRound(result, finalPlayers, rng);
+        return gameState.result;
+    return playFinalRound(gameState, rng);
+}
+
+void Chase::createGameState(evol::Rng const& rng) const
+{
+    if(gameState_)
+        return;
+    GameState gameState;
+    for(size_t i = 0; i < path_.size(); ++i)
+    {
+        if( path_[i] == 0)
+            continue;
+        double playerAmount = playQuickRound(candidates_[i], rng);
+        double factor = 0.0;
+        switch(path_[i]){
+            case 4: factor = chaserFactor_;
+            case 5: factor = 1.0;
+            case 6: factor = 1.0 / chaserFactor_;
+            default: break;
+        }
+        gameState.result += playerAmount * factor;
+        gameState.finalPlayers.push_back(candidates_[i]);
+    }
+    gameState_ = gameState;
 }
 
 double Chase::playQuickRound(Player const& player, evol::Rng const& rng) const
@@ -129,19 +168,19 @@ std::pair<int, int> Chase::playPlayersFinal(std::vector<std::reference_wrapper<c
     return { playerScore, numPlayerQuestions };
 }
 
-double Chase::playFinalRound(double gainedAmount, std::vector<std::reference_wrapper<const Player>> const& finalPlayers, evol::Rng const& rng) const
+double Chase::playFinalRound(GameState const& gameState, evol::Rng const& rng) const
 {
-    if(finalPlayers.size() == 0)
+    if(gameState.finalPlayers.size() == 0)
         return 0.0;
     // play candidates final
-    int playerScore = finalPlayers.size(); // candidates start with the amount of candidates as points
-    playerScore += playPlayersFinal(finalPlayers, rng, 20.0, 2.0).first;
+    int playerScore = gameState.finalPlayers.size(); // candidates start with the amount of candidates as points
+    playerScore += playPlayersFinal(gameState.finalPlayers, rng, 20.0, 2.0).first;
     // play chaser final
     std::vector<std::reference_wrapper<const Player>> chaserCont = { chaser_ };
     auto[chaserScore, chaserNumQuestions] = playPlayersFinal(chaserCont, rng, 22.0, 2.0); // chasers answers more quickly, therefore more questions
-
-    chaserScore -= playPlayersFinal(finalPlayers, rng, double(chaserNumQuestions-chaserScore), 0.0).first;
-    return playerScore > chaserScore ? gainedAmount : 0.0;
+    // subtract candidates correct answers
+    chaserScore -= playPlayersFinal(gameState.finalPlayers, rng, double(chaserNumQuestions-chaserScore), 0.0).first;
+    return playerScore > chaserScore ? gameState.result : 0.0;
 }
 
 }
