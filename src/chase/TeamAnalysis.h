@@ -24,7 +24,7 @@ struct TeamPlayerAnalysis{
         std::array<double,3> chaserFactorParams = {{1.0, 5.0, 0.5}};
     };
     AnalysisRange analysisRange;
-    std::map<double, SimpleResult> results;
+    std::map<std::pair<std::vector<int>, double>, SimpleResult> results;
 };
 
 void teamPlayerAnalysis(TeamPlayerAnalysis& analysis);
