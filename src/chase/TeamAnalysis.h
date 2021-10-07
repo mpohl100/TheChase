@@ -23,7 +23,7 @@ struct SimpleTeamResult{
     size_t numGames = 0;
 };
 
-SimpleTeamResult teamChaseAnalysis(TeamAnalysisOptions const& options);
+SimpleTeamResult teamChaseAnalysis(TeamAnalysisOptions const& options, TeamGamePlan& sharedPlan);
 
 struct TeamPlayerAnalysis{
     struct AnalysisRange{

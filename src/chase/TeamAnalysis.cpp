@@ -12,40 +12,48 @@
 
 namespace chase {
 
-SimpleTeamResult teamChaseAnalysis(TeamAnalysisOptions const& options)
+SimpleTeamResult teamChaseAnalysis(TeamAnalysisOptions const& options, TeamGamePlan& sharedPlan)
 {
     auto chase = std::make_shared<TeamChase>(options.playerEquity, options.nbRounds, options.chaserFactor, options.path);
-    std::vector<TeamGamePlan> gamePlans(20);
+    std::vector<TeamGamePlan> gamePlans;
+    for(size_t i = 0; i < 20; ++i)
+        gamePlans.push_back(sharedPlan);
     double winningAverageWin = 0;
-
     auto winningPopulation = evol::evolution(gamePlans, options.nbGenerations, *chase, winningAverageWin, options.logLevel);
     //std::cout << "\nAvg. win " << winningAverageWin << ", \ngame plan: " << winningPopulation.front().toString() << '\n';
+    sharedPlan = winningPopulation.front();
     return {winningPopulation.front(), winningAverageWin, chase->numGames()};
 }
 
 void teamPlayerAnalysis(TeamPlayerAnalysis& analysis)
 {
     size_t numGames = 0;
-    for(size_t i = 3; i > 0; --i)
+    auto steps = std::vector<int>{0,4,5,6};
+    auto paths = stoch::all_paths(steps, 3);
+    auto paths2 = stoch::all_paths(steps, 2);
+    auto paths1 = stoch::all_paths(steps, 1);
+    paths.insert(paths.end(), paths2.begin(), paths2.end());
+    paths.insert(paths.end(), paths1.begin(), paths1.end());
+
+    for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
+        chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
+        chaserFactor += analysis.analysisRange.chaserFactorParams[2])
     {
-        auto paths = stoch::all_paths(std::vector<int>{0,4,5,6}, i);
+        TeamGamePlan sharedPlan;
         for(const auto& path : paths)
-            for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
-                chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
-                chaserFactor += analysis.analysisRange.chaserFactorParams[2])
-            {
-                TeamAnalysisOptions options;
-                options.path = path;
-                options.playerEquity = analysis.analysisRange.playerPercentages;
-                options.chaserFactor = chaserFactor;
-                options.logLevel = 1;
-                options.nbGenerations = 100;
-                options.nbRounds = 500;
-                SimpleTeamResult result = teamChaseAnalysis(options);
-                numGames += result.numGames;
-                std::cout << "\nAvg. win " << result.avgWin << ", \ngame plan: " << result.gamePlan.toString() << '\n';
-                analysis.results[{path, chaserFactor}] = {result.gamePlan.plan[path], result.avgWin, result.numGames};
-            }
+        {
+            TeamAnalysisOptions options;
+            options.path = path;
+            options.playerEquity = analysis.analysisRange.playerPercentages;
+            options.chaserFactor = chaserFactor;
+            options.logLevel = 1;
+            options.nbGenerations = 100;
+            options.nbRounds = 500;
+            SimpleTeamResult result = teamChaseAnalysis(options, sharedPlan);
+            numGames += result.numGames;
+            std::cout << "\nAvg. win " << result.avgWin << ", \ngame plan: " << result.gamePlan.toString() << '\n';
+            analysis.results[{path, chaserFactor}] = {result.gamePlan.plan[path], result.avgWin, result.numGames};
+        }
     }
     std::cout << "Nb. of games: " << numGames << '\n';
 

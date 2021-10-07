@@ -39,7 +39,7 @@ std::string GamePlan::toString() const
 {
     std::string ret = "\n";
     for( const auto& [index, percentage] : percentages)
-        ret += "candidate " + std::to_string(index+1) + "(" + std::to_string(chase->candidates()[index].equity()*100) + "%): " + percentage.toString() + "\n"; 
+        ret += "candidate " + std::to_string(index+1) + "(" + ( chase ? std::to_string(chase->candidates()[index].equity()*100) : "") + "%): " + percentage.toString() + "\n"; 
     return ret;
 }
 
