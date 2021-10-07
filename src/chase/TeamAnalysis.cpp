@@ -25,16 +25,21 @@ SimpleTeamResult teamChaseAnalysis(TeamAnalysisOptions const& options, TeamGameP
     return {winningPopulation.front(), winningAverageWin, chase->numGames()};
 }
 
-void teamPlayerAnalysis(TeamPlayerAnalysis& analysis)
+std::vector<std::vector<int>> calc_paths()
 {
-    size_t numGames = 0;
     auto steps = std::vector<int>{0,4,5,6};
     auto paths = stoch::all_paths(steps, 3);
     auto paths2 = stoch::all_paths(steps, 2);
     auto paths1 = stoch::all_paths(steps, 1);
     paths.insert(paths.end(), paths2.begin(), paths2.end());
     paths.insert(paths.end(), paths1.begin(), paths1.end());
+    return paths;
+}
 
+void teamPlayerAnalysis(TeamPlayerAnalysis& analysis)
+{
+    size_t numGames = 0;
+    auto paths = calc_paths();
     for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
         chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
         chaserFactor += analysis.analysisRange.chaserFactorParams[2])
@@ -70,7 +75,18 @@ void dumpTeamPlayerResults(TeamPlayerAnalysis& analysis, std::string const& file
     {
         outfile << chaserFactor << ';';
     }
-    outfile << '\n';    
+    outfile << '\n';   
+    auto paths = calc_paths();
+    for(const auto& path : paths)
+    {
+        
+        for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
+            chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
+            chaserFactor += analysis.analysisRange.chaserFactorParams[2])
+        {
+
+        }
+    } 
 }
 
 }
