@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Analysis.h"
+#include "TeamGamePlan.h"
 
 #include <vector>
 
@@ -16,7 +17,13 @@ struct TeamAnalysisOptions{
     std::vector<int> path;   
 };
 
-SimpleResult teamChaseAnalysis(TeamAnalysisOptions const& options);
+struct SimpleTeamResult{
+    TeamGamePlan gamePlan;
+    double avgWin;
+    size_t numGames = 0;
+};
+
+SimpleTeamResult teamChaseAnalysis(TeamAnalysisOptions const& options);
 
 struct TeamPlayerAnalysis{
     struct AnalysisRange{

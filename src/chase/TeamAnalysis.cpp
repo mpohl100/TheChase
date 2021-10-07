@@ -1,4 +1,5 @@
 #include "TeamAnalysis.h"
+#include "TeamChase.h"
 #include "Stochastics.h"
 
 #include <evol/Evolution.h>
@@ -11,19 +12,11 @@
 
 namespace chase {
 
-SimpleResult teamChaseAnalysis(TeamAnalysisOptions const& options)
+SimpleTeamResult teamChaseAnalysis(TeamAnalysisOptions const& options)
 {
-    auto chase = std::make_shared<Chase>(options.playerEquity, options.nbRounds, options.chaserFactor, options.path);
-    std::vector<GamePlan> gamePlans(20);
-    std::generate(gamePlans.begin(), gamePlans.end(), [&chase](){
-        GamePlan plan;
-        plan.chase = chase;
-        for(const Player& candidate : chase->candidates())
-            plan.percentages[candidate.index()] = {};
-        return plan;
-    } );
+    auto chase = std::make_shared<TeamChase>(options.playerEquity, options.nbRounds, options.chaserFactor, options.path);
+    std::vector<TeamGamePlan> gamePlans(20);
     double winningAverageWin = 0;
-
 
     auto winningPopulation = evol::evolution(gamePlans, options.nbGenerations, *chase, winningAverageWin, options.logLevel);
     //std::cout << "\nAvg. win " << winningAverageWin << ", \ngame plan: " << winningPopulation.front().toString() << '\n';
@@ -33,7 +26,7 @@ SimpleResult teamChaseAnalysis(TeamAnalysisOptions const& options)
 void teamPlayerAnalysis(TeamPlayerAnalysis& analysis)
 {
     size_t numGames = 0;
-    for(size_t i = 1; i < 4; ++i)
+    for(size_t i = 3; i > 0; --i)
     {
         auto paths = stoch::all_paths(std::vector<int>{0,4,5,6}, i);
         for(const auto& path : paths)
@@ -48,10 +41,10 @@ void teamPlayerAnalysis(TeamPlayerAnalysis& analysis)
                 options.logLevel = 1;
                 options.nbGenerations = 100;
                 options.nbRounds = 500;
-                SimpleResult result = teamChaseAnalysis(options);
+                SimpleTeamResult result = teamChaseAnalysis(options);
                 numGames += result.numGames;
                 std::cout << "\nAvg. win " << result.avgWin << ", \ngame plan: " << result.gamePlan.toString() << '\n';
-                analysis.results[{path, chaserFactor}] = result;
+                analysis.results[{path, chaserFactor}] = {result.gamePlan.plan[path], result.avgWin, result.numGames};
             }
     }
     std::cout << "Nb. of games: " << numGames << '\n';
