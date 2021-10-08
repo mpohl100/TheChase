@@ -15,4 +15,6 @@ struct TeamGamePlan{
     std::string toString() const;
 };
 
+std::string toStringPath(std::vector<int> const& path);
+
 }

@@ -1,4 +1,4 @@
-#include <chase/Analysis.h>
+#include <chase/TeamAnalysis.h>
 #include <clara.hpp>
 
 #include <iostream>
@@ -29,9 +29,11 @@ int main(int argc, char** argv)
     options.nbGenerations = 500;
     chase::simpleChaseAnalysis(options);
 #endif
-    chase::SinglePlayerAnalysis analysis;
-    chase::singlePlayerAnalysis(analysis);
-    chase::dumpSinglePlayerResults(analysis, "SinglePlayerAnalysis.csv");
+    chase::TeamPlayerAnalysis analysis;
+    analysis.analysisRange.playerPercentages = {0.7, 0.4, 0.4, 0.4};
+    analysis.analysisRange.chaserFactorParams = {{1.0, 5.0, 1.0}};
+    chase::teamPlayerAnalysis(analysis);
+    chase::dumpTeamPlayerResults(analysis, "TeamPlayerAnalysis.csv");
     return 0;
 }
 

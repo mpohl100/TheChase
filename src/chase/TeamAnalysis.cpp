@@ -47,6 +47,12 @@ void teamPlayerAnalysis(TeamPlayerAnalysis& analysis)
         TeamGamePlan sharedPlan;
         for(const auto& path : paths)
         {
+            auto& gamePlan = sharedPlan.plan[path];
+            gamePlan.percentages[0] = {};
+        }
+
+        for(const auto& path : paths)
+        {
             TeamAnalysisOptions options;
             options.path = path;
             options.playerEquity = analysis.analysisRange.playerPercentages;
@@ -56,12 +62,26 @@ void teamPlayerAnalysis(TeamPlayerAnalysis& analysis)
             options.nbRounds = 500;
             SimpleTeamResult result = teamChaseAnalysis(options, sharedPlan);
             numGames += result.numGames;
+            std::cout << chaserFactor << " " << toStringPath(path) << '\n';
             std::cout << "\nAvg. win " << result.avgWin << ", \ngame plan: " << result.gamePlan.toString() << '\n';
             analysis.results[{path, chaserFactor}] = {result.gamePlan.plan[path], result.avgWin, result.numGames};
         }
     }
     std::cout << "Nb. of games: " << numGames << '\n';
 
+}
+
+std::string toString(std::vector<int> const& path, std::vector<double> const& playerPercentages)
+{
+    std::string ret = "[";
+    for(size_t i = 0; i < path.size(); ++i)
+    {
+        ret += std::to_string(path[i]);
+        ret += "(" + std::to_string(playerPercentages[i]*100) + "%)|";
+    }
+    ret = ret.substr(0, ret.size()-1);
+    ret += "]";
+    return ret;
 }
 
 void dumpTeamPlayerResults(TeamPlayerAnalysis& analysis, std::string const& filename)
@@ -79,13 +99,16 @@ void dumpTeamPlayerResults(TeamPlayerAnalysis& analysis, std::string const& file
     auto paths = calc_paths();
     for(const auto& path : paths)
     {
-        
+        outfile << toString(path, analysis.analysisRange.playerPercentages) << ';';     
         for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
             chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
             chaserFactor += analysis.analysisRange.chaserFactorParams[2])
         {
-
+            SimpleResult& result = analysis.results[{path, chaserFactor}];
+            auto percentages = result.gamePlan.percentages.begin()->second;
+            outfile << result.avgWin << "€|" << percentages.gamble * 100 << "%|" << percentages.stay * 100 << "%|" << (1 - percentages.gamble - percentages.stay) * 100 << "%;";
         }
+        outfile << '\n';
     } 
 }
 
