@@ -33,6 +33,7 @@ std::vector<std::vector<int>> calc_paths()
     auto paths1 = stoch::all_paths(steps, 1);
     paths.insert(paths.end(), paths2.begin(), paths2.end());
     paths.insert(paths.end(), paths1.begin(), paths1.end());
+    paths.push_back({});
     return paths;
 }
 
