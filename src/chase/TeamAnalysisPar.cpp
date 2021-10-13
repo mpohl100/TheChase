@@ -36,7 +36,7 @@ void TeamAnalysisPar::initCalculations()
             par::SubCalculation<SimpleTeamResult, TeamAnalysisOptionsPar> c(f, par);
             calcs.push_back(c);
         }
-        calculations_.emplace_back(calcs);
+        calculations_.push_back(par::CalcStep(calcs));
     }
 }
 

@@ -17,6 +17,8 @@ public:
     SubCalculation() = default;
     SubCalculation(SubCalculation const&) = default; 
     SubCalculation& operator=(SubCalculation const&) = default;
+    SubCalculation(SubCalculation&&) = default; 
+    SubCalculation& operator=(SubCalculation&&) = default;
 
     void calc()
     {
@@ -37,8 +39,8 @@ template<class SubCalc>
 class CalcStep {
 public:
     CalcStep(std::vector<SubCalc> const& subCalcs)
-    :  subCalcs_(subCalcs)
     {
+        subCalcs_ = subCalcs;
         // put shared_ptrs of sub calcultions onto the queue in reverse order
         for(auto& subCalc : subCalcs_ | ranges::views::reverse)
         {
@@ -48,9 +50,13 @@ public:
         }
     }
 
+    CalcStep() = default;
+    CalcStep(CalcStep const&) = default;
+    CalcStep& operator=(CalcStep const&) = default;
+
     std::shared_ptr<SubCalc> pop() noexcept
     {
-        std::unique_lock lock(mutex_);
+        std::unique_lock lock(*mutex_);
         if(queue_.empty())
             return nullptr;
         auto subCalc = queue_.top();
@@ -72,7 +78,7 @@ public:
     std::vector<SubCalc>& subCalcs() { return subCalcs_; }
 
 private:
-    std::mutex mutex_;
+    std::shared_ptr<std::mutex> mutex_ = std::make_shared<std::mutex>();
     // independent sub calculations
     std::vector<SubCalc> subCalcs_;
     std::stack<std::shared_ptr<SubCalc>> queue_;
