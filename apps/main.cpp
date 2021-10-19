@@ -1,4 +1,4 @@
-#include <chase/TeamAnalysis.h>
+#include <chase/TeamAnalysisPar.h>
 #include <clara.hpp>
 
 #include <iostream>
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     chase::TeamPlayerAnalysis analysis;
     analysis.analysisRange.playerPercentages = {0.7, 0.4, 0.4, 0.7};
     analysis.analysisRange.chaserFactorParams = {{1.0, 5.0, 1.0}};
-    chase::teamPlayerAnalysis(analysis);
+    chase::teamPlayerAnalysisPar(analysis);
     chase::dumpTeamPlayerResults(analysis, "TeamPlayerAnalysis2.csv");
     return 0;
 }

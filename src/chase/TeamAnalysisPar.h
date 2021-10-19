@@ -11,15 +11,18 @@ struct TeamAnalysisOptionsPar{
     TeamGamePlan gamePlan;
 };
 
-class TeamAnalysisPar : par::Calculation<par::SubCalculation<SimpleTeamResult, TeamAnalysisOptionsPar>>{
+class TeamAnalysisPar : public par::Calculation<par::SubCalculation<SimpleTeamResult, TeamAnalysisOptionsPar>>{
 public:
     TeamAnalysisPar(std::vector<double> playerEquity, double chaserFactor, size_t numThreads);
+    SimpleTeamResult const& getResult() const;
+private:
     virtual void initCalculations() override;
     virtual void initTransformations() override;
-private:
+
     double chaserFactor_;
     std::vector<double> playerEquity_;
 };
 
+void teamPlayerAnalysisPar(TeamPlayerAnalysis& analysis);
 
 }

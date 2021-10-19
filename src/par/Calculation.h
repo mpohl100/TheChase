@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <thread>
+#include <tuple>
 
 #include <range/v3/all.hpp>
 
@@ -22,10 +23,10 @@ public:
 
     void calc()
     {
-        result_ = func_(args_);
+        result_ = std::apply(func_, args_);
     }
 
-    Result& result() { return result_; }
+    const Result& result() const { return result_; }
     std::tuple<Args...>& args() { return args_; }
 
 private:
@@ -44,9 +45,7 @@ public:
         // put shared_ptrs of sub calcultions onto the queue in reverse order
         for(auto& subCalc : subCalcs_ | ranges::views::reverse)
         {
-            std::shared_ptr<SubCalc> ptr = nullptr;
-            ptr.reset(&subCalc);
-            queue_.push(ptr);
+            queue_.push(&subCalc);
         }
     }
 
@@ -54,7 +53,7 @@ public:
     CalcStep(CalcStep const&) = default;
     CalcStep& operator=(CalcStep const&) = default;
 
-    std::shared_ptr<SubCalc> pop() noexcept
+    SubCalc* pop() noexcept
     {
         std::unique_lock lock(*mutex_);
         if(queue_.empty())
@@ -76,12 +75,13 @@ public:
     }
 
     std::vector<SubCalc>& subCalcs() { return subCalcs_; }
+    std::vector<SubCalc> const& subCalcs() const { return subCalcs_; }
 
 private:
     std::shared_ptr<std::mutex> mutex_ = std::make_shared<std::mutex>();
     // independent sub calculations
     std::vector<SubCalc> subCalcs_;
-    std::stack<std::shared_ptr<SubCalc>> queue_;
+    std::stack<SubCalc*> queue_;
 };
 
 
@@ -91,9 +91,6 @@ public:
     Calculation(size_t numThreads) 
         : numThreads_(numThreads)
     {}
-
-    virtual void initCalculations() = 0;
-    virtual void initTransformations() = 0;
 
     // fill calculations
     void init()
@@ -116,6 +113,10 @@ public:
         }
     }
 protected:
+
+    virtual void initCalculations() = 0;
+    virtual void initTransformations() = 0;
+
     size_t numThreads_ = 1;
     std::vector<CalcStep<SubCalc>> calculations_;
     // index 0 handles transformation from calculations_[0] to calculations_[1]

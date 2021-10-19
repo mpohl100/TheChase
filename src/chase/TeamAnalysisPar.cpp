@@ -60,5 +60,25 @@ void TeamAnalysisPar::initTransformations()
     }
 }
 
+SimpleTeamResult const& TeamAnalysisPar::getResult() const
+{
+    return calculations_.cbegin()->subCalcs()[0].result();
+}
+
+void teamPlayerAnalysisPar(TeamPlayerAnalysis& analysis)
+{
+    for( double chaserFactor = analysis.analysisRange.chaserFactorParams[0];
+        chaserFactor <= analysis.analysisRange.chaserFactorParams[1];
+        chaserFactor += analysis.analysisRange.chaserFactorParams[2])
+    {
+        auto analyser = TeamAnalysisPar(analysis.analysisRange.playerPercentages, chaserFactor, 4);
+        analyser.init();
+        analyser.calculate();
+        SimpleTeamResult result = analyser.getResult();
+        for(const auto& [path, gamePlan] : result.gamePlan.plan)
+            analysis.results[{path, chaserFactor}] = { gamePlan, result.avgWin, result.numGames };
+    }
+}
+
 
 }
