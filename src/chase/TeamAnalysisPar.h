@@ -14,7 +14,7 @@ struct TeamAnalysisOptionsPar{
 class TeamAnalysisPar : public par::Calculation<par::SubCalculation<SimpleTeamResult, TeamAnalysisOptionsPar>>{
 public:
     TeamAnalysisPar(std::vector<double> playerEquity, double chaserFactor, size_t numThreads);
-    SimpleTeamResult const& getResult() const;
+    SimpleTeamResult getResult() const;
 private:
     virtual void initCalculations() override;
     virtual void initTransformations() override;

@@ -51,7 +51,7 @@ void TeamAnalysisPar::initTransformations()
                 auto& par = std::get<TeamAnalysisOptionsPar>(calc.args());
                 for(auto& thisCalc : calculations_[i].subCalcs())
                 {
-                    auto& currentPlan = thisCalc.result().gamePlan.plan;
+                    auto currentPlan = calculations_[i].result(&thisCalc).gamePlan.plan;
                     par.gamePlan.plan.insert(currentPlan.begin(), currentPlan.end());
                 }
             }
@@ -60,9 +60,11 @@ void TeamAnalysisPar::initTransformations()
     }
 }
 
-SimpleTeamResult const& TeamAnalysisPar::getResult() const
+SimpleTeamResult TeamAnalysisPar::getResult() const
 {
-    return calculations_.cbegin()->subCalcs()[0].result();
+    const auto& subCalc = calculations_.cbegin()->subCalcs()[0];
+    auto result = calculations_.begin()->result(&subCalc);
+    return result;
 }
 
 void teamPlayerAnalysisPar(TeamPlayerAnalysis& analysis)
