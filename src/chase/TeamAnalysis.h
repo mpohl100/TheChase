@@ -14,7 +14,7 @@ struct TeamAnalysisOptions{
     int logLevel = 2;
     double chaserFactor = 3.0;
     bool dontPlayFinal = false;
-    std::vector<int> path;   
+    std::vector<int> path{};   
 };
 
 struct SimpleTeamResult{

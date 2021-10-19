@@ -19,6 +19,9 @@ void TeamAnalysisPar::initCalculations()
         if(depth == 0)
             paths = {{}};
         std::vector<par::SubCalculation<SimpleTeamResult, TeamAnalysisOptionsPar>> calcs;
+        TeamGamePlan sharedPlan;
+        for(const auto& p : paths)
+            sharedPlan.plan[p] = {};
         for(const auto& p : paths)
         {
             TeamAnalysisOptions options;
@@ -30,6 +33,7 @@ void TeamAnalysisPar::initCalculations()
             options.nbRounds = 500;
             TeamAnalysisOptionsPar par;
             par.options = options;
+            par.gamePlan = sharedPlan;
             std::function<SimpleTeamResult(TeamAnalysisOptionsPar)> f = [](TeamAnalysisOptionsPar par){
                 return teamChaseAnalysis(par.options, par.gamePlan);
             };
@@ -49,11 +53,14 @@ void TeamAnalysisPar::initTransformations()
             for(auto& calc : nextCalcStep.subCalcs())
             {
                 auto& par = std::get<TeamAnalysisOptionsPar>(calc.args());
+                TeamGamePlan sharedPlan;
                 for(auto& thisCalc : calculations_[i].subCalcs())
                 {
-                    auto currentPlan = calculations_[i].result(&thisCalc).gamePlan.plan;
-                    par.gamePlan.plan.insert(currentPlan.begin(), currentPlan.end());
+                    SimpleTeamResult result = calculations_[i].result(&thisCalc);
+                    auto& options = std::get<TeamAnalysisOptionsPar>(thisCalc.args()).options;
+                    sharedPlan.plan[options.path] = result.gamePlan.plan[options.path];
                 }
+                par.gamePlan = sharedPlan;
             }
         };
         transformations_.push_back(func);
