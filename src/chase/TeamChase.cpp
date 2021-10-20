@@ -40,7 +40,7 @@ void TeamChase::createGameState(evol::Rng const& rng) const
 double TeamChase::score(TeamGamePlan const& plan) const
 {
     double ret = 0;
-    static evol::Rng rng;
+    evol::Rng rng;
     if(not gameState_)
         createGameState(rng);
     plan.currentPath = path_;

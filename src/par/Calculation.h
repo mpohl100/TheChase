@@ -2,10 +2,11 @@
 
 #include <vector>
 #include <map>
+#include <optional>
 #include <thread>
 #include <tuple>
-
-#include <range/v3/all.hpp>
+#include <functional>
+#include <mutex>
 
 namespace par{
 
@@ -42,50 +43,45 @@ public:
     CalcStep(std::vector<SubCalc> const& subCalcs)
     {
         subCalcs_ = subCalcs;
-        // put shared_ptrs of sub calcultions onto the queue in reverse order
-        for(const auto& subCalc : subCalcs_ | ranges::views::reverse)
-        {
-            queue_.push(&subCalc);
-        }
     }
 
     CalcStep() = default;
     CalcStep(CalcStep const&) = default;
     CalcStep& operator=(CalcStep const&) = default;
 
-    std::pair<const SubCalc*,SubCalc> pop() noexcept
+    std::pair<std::optional<SubCalc>,size_t> pop()
     {
         std::lock_guard<std::mutex> lock(*mutex_);
-        if(queue_.empty())
-            return {nullptr, {}};
-        auto subCalc = queue_.top();
-        queue_.pop();
-        return {subCalc, *subCalc};
+        if(currentIndex_ >= subCalcs_.size())
+            return {std::nullopt, -1};
+        std::pair<std::optional<SubCalc>,size_t> ret{subCalcs_[currentIndex_], currentIndex_};
+        currentIndex_++;
+        return ret;
     }
 
-    void setResult(const SubCalc* subCalc, typename SubCalc::result_t const& result)
+    void setResult(size_t index, typename SubCalc::result_t const& result)
     {
         std::lock_guard<std::mutex> lock(*mutex_);
-        results_[subCalc] = result;
+        results_[index] = result;
     }
 
     void calc()
     {
         for(;;)
         {
-            std::pair<const SubCalc*, SubCalc> subCalc = pop();
+            auto subCalc = pop();
             if(not subCalc.first)
                 break;
-            auto result = subCalc.second.calc();
-            setResult(subCalc.first, result);
+            auto result = subCalc.first->calc();
+            setResult(subCalc.second, result);
         }
     }
 
     std::vector<SubCalc>& subCalcs() { return subCalcs_; }
     std::vector<SubCalc> const& subCalcs() const { return subCalcs_; }
-    typename SubCalc::result_t result(const SubCalc* subCalc) const 
+    typename SubCalc::result_t result(size_t index) const 
     { 
-        auto it = results_.find(subCalc);
+        auto it = results_.find(index);
         if(it != results_.end())
             return it->second;
         return {};  
@@ -95,9 +91,9 @@ private:
     std::shared_ptr<std::mutex> mutex_ = std::make_shared<std::mutex>();
     // independent sub calculations
     std::vector<SubCalc> subCalcs_;
-    std::stack<const SubCalc*> queue_;
+    size_t currentIndex_ = 0;
     // index in subCalcs_, Result
-    std::map<const SubCalc*, typename SubCalc::result_t> results_;
+    std::map<size_t, typename SubCalc::result_t> results_;
 };
 
 

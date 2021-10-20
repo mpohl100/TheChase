@@ -54,9 +54,10 @@ void TeamAnalysisPar::initTransformations()
             {
                 auto& par = std::get<TeamAnalysisOptionsPar>(calc.args());
                 TeamGamePlan sharedPlan;
+                size_t index = 0;
                 for(auto& thisCalc : calculations_[i].subCalcs())
                 {
-                    SimpleTeamResult result = calculations_[i].result(&thisCalc);
+                    SimpleTeamResult result = calculations_[i].result(index++);
                     auto& options = std::get<TeamAnalysisOptionsPar>(thisCalc.args()).options;
                     sharedPlan.plan[options.path] = result.gamePlan.plan[options.path];
                 }
@@ -69,8 +70,7 @@ void TeamAnalysisPar::initTransformations()
 
 SimpleTeamResult TeamAnalysisPar::getResult() const
 {
-    const auto& subCalc = calculations_.cbegin()->subCalcs()[0];
-    auto result = calculations_.begin()->result(&subCalc);
+    auto result = calculations_.begin()->result(0);
     return result;
 }
 
