@@ -1,6 +1,8 @@
 #include "TeamAnalysisPar.h"
 #include "Stochastics.h"
 
+#include <iostream>
+
 namespace chase{
 
 TeamAnalysisPar::TeamAnalysisPar( std::vector<double> playerEquity, double chaserFactor, size_t numThreads)
@@ -21,21 +23,27 @@ void TeamAnalysisPar::initCalculations()
         std::vector<par::SubCalculation<SimpleTeamResult, TeamAnalysisOptionsPar>> calcs;
         TeamGamePlan sharedPlan;
         for(const auto& p : paths)
-            sharedPlan.plan[p] = {};
+        {
+            auto& plan = sharedPlan.plan[p];
+            plan.percentage = {};
+        }
         for(const auto& p : paths)
         {
             TeamAnalysisOptions options;
             options.playerEquity = playerEquity_;
             options.chaserFactor = chaserFactor_;
             options.path = p;
-            options.logLevel = 0;
+            options.logLevel = 1;
             options.nbGenerations = 100;
             options.nbRounds = 500;
             TeamAnalysisOptionsPar par;
             par.options = options;
             par.gamePlan = sharedPlan;
             std::function<SimpleTeamResult(TeamAnalysisOptionsPar)> f = [](TeamAnalysisOptionsPar par){
-                return teamChaseAnalysis(par.options, par.gamePlan);
+                SimpleTeamResult result = teamChaseAnalysis(par.options, par.gamePlan);
+                TeamGamePlan& plan = result.gamePlan;
+                std::cout << result.avgWin << ' ' << plan.toString() << '\n';
+                return result;
             };
             par::SubCalculation<SimpleTeamResult, TeamAnalysisOptionsPar> c(f, par);
             calcs.push_back(c);
@@ -49,19 +57,23 @@ void TeamAnalysisPar::initTransformations()
     for(size_t i = 0; i < calculations_.size() - 1; ++i)
     {
         auto func = [i, this](){
-            auto& nextCalcStep = calculations_[i+1];
-            for(auto& calc : nextCalcStep.subCalcs())
+            TeamGamePlan sharedPlan;
+                            
+            for(size_t j = 0; j <= i; j++)
             {
-                auto& par = std::get<TeamAnalysisOptionsPar>(calc.args());
-                TeamGamePlan sharedPlan;
                 size_t index = 0;
-                for(auto& thisCalc : calculations_[i].subCalcs())
+                for(auto& thisCalc : calculations_[j].subCalcs())
                 {
                     SimpleTeamResult result = calculations_[i].result(index++);
                     auto& options = std::get<TeamAnalysisOptionsPar>(thisCalc.args()).options;
                     sharedPlan.plan[options.path] = result.gamePlan.plan[options.path];
-                }
-                par.gamePlan = sharedPlan;
+                }  
+            }              
+            auto& nextCalcStep = calculations_[i+1];
+            for(auto& calc : nextCalcStep.subCalcs())
+            {
+                auto& par = std::get<TeamAnalysisOptionsPar>(calc.args());   
+                par.gamePlan.plan.insert(sharedPlan.plan.begin(), sharedPlan.plan.end());
             }
         };
         transformations_.push_back(func);
@@ -70,7 +82,7 @@ void TeamAnalysisPar::initTransformations()
 
 SimpleTeamResult TeamAnalysisPar::getResult() const
 {
-    auto result = calculations_.begin()->result(0);
+    auto result = calculations_.rbegin()->result(0);
     return result;
 }
 

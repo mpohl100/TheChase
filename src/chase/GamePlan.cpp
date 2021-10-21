@@ -8,38 +8,29 @@ namespace chase {
 
 void GamePlan::crossover(GamePlan const& other)
 {
-    for(auto& [equity, percentage] : percentages)
-    {
-        if(auto it = other.percentages.find(equity); it != other.percentages.end())
-        {
-            percentage.gamble += it->second.gamble;
-            percentage.gamble /= 2.0;
-            percentage.stay += it->second.stay;
-            percentage.stay /= 2.0;
-        }
-    }
+
+    percentage.gamble += other.percentage.gamble;
+    percentage.gamble /= 2.0;
+    percentage.stay += other.percentage.stay;
+    percentage.stay /= 2.0;
 }
 
 void GamePlan::mutate()
 {
     evol::Rng rng;
-    size_t elementToMutate = rng.fetchUniform(0, percentages.size()-1, 1).top();
-    auto it = percentages.begin();
-    std::advance(it, elementToMutate);
     bool modifyGamble = rng.fetchUniform(0,1,1).top() == 0;
     int modifyPercentage = rng.fetchUniform(-10,10,1).top();
     if(modifyGamble)
-        it->second.gamble += modifyPercentage / 100.0;
+        percentage.gamble += modifyPercentage / 100.0;
     else
-        it->second.stay += modifyPercentage / 100.0;
-    it->second.normalize();
+        percentage.stay += modifyPercentage / 100.0;
+    percentage.normalize();
 }
 
 std::string GamePlan::toString() const
 {
     std::string ret = "\n";
-    for( const auto& [index, percentage] : percentages)
-        ret += "candidate " + std::to_string(index+1) + "(" + ( chase ? std::to_string(chase->candidates()[index].equity()*100) : "") + "%): " + percentage.toString() + "\n"; 
+    ret += "candidate: " + percentage.toString() + "\n"; 
     return ret;
 }
 

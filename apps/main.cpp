@@ -28,12 +28,13 @@ int main(int argc, char** argv)
     options.dontPlayFinal = true;
     options.nbGenerations = 500;
     chase::simpleChaseAnalysis(options);
-#endif
+#else
     chase::TeamPlayerAnalysis analysis;
     analysis.analysisRange.playerPercentages = {0.7, 0.4, 0.4, 0.7};
-    analysis.analysisRange.chaserFactorParams = {{1.0, 5.0, 1.0}};
+    analysis.analysisRange.chaserFactorParams = {{2.0, 5.0, 1.0}};
     chase::teamPlayerAnalysisPar(analysis);
     chase::dumpTeamPlayerResults(analysis, "TeamPlayerAnalysis2.csv");
+#endif
     return 0;
 }
 

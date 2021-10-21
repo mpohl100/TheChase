@@ -49,7 +49,7 @@ void teamPlayerAnalysis(TeamPlayerAnalysis& analysis)
         for(const auto& path : paths)
         {
             auto& gamePlan = sharedPlan.plan[path];
-            gamePlan.percentages[0] = {};
+            gamePlan.percentage = {};
         }
 
         for(const auto& path : paths)
@@ -106,8 +106,8 @@ void dumpTeamPlayerResults(TeamPlayerAnalysis& analysis, std::string const& file
             chaserFactor += analysis.analysisRange.chaserFactorParams[2])
         {
             SimpleResult& result = analysis.results[{path, chaserFactor}];
-            auto percentages = result.gamePlan.percentages.begin()->second;
-            outfile << result.avgWin << "€|" << percentages.gamble * 100 << "%|" << percentages.stay * 100 << "%|" << (1 - percentages.gamble - percentages.stay) * 100 << "%;";
+            auto percentage = result.gamePlan.percentage;
+            outfile << result.avgWin << "€|" << percentage.gamble * 100 << "%|" << percentage.stay * 100 << "%|" << (1 - percentage.gamble - percentage.stay) * 100 << "%;";
         }
         outfile << '\n';
     } 

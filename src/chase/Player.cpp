@@ -15,13 +15,8 @@ bool Player::answer(int num) const
 
 size_t Player::deduceStartingStep(GamePlan const& gamePlan, evol::Rng const& rng) const
 {
-    auto it = gamePlan.percentages.find(index());
-    if(it != gamePlan.percentages.end())
-    {
-        int num = rng.fetchUniform(0, 100, 1).top();
-        return it->second.startingStep(num);
-    }
-    return 5; // by default stay
+    int num = rng.fetchUniform(0, 100, 1).top();
+    return gamePlan.percentage.startingStep(num);
 }
 
 double Player::equity() const

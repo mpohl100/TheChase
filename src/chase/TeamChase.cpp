@@ -26,9 +26,9 @@ void TeamChase::createGameState(evol::Rng const& rng) const
         double playerAmount = playQuickRound(candidates_[i], rng);
         double factor = 0.0;
         switch(path_[i]){
-            case 4: factor = chaserFactor_;
-            case 5: factor = 1.0;
-            case 6: factor = 1.0 / chaserFactor_;
+            case 4: factor = 1.0 / chaserFactor_; break;
+            case 5: factor = 1.0; break;
+            case 6: factor = chaserFactor_; break;
             default: break;
         }
         gameState.result += playerAmount * factor;

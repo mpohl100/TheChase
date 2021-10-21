@@ -11,11 +11,9 @@ SimpleResult simpleChaseAnalysis(SimpleAnalysisOptions const& options)
 {
     auto chase = std::make_shared<Chase>(options.playerEquity, options.nbPlayers, options.nbRounds, options.chaserFactor, options.dontPlayFinal);
     std::vector<GamePlan> gamePlans(20);
-    std::generate(gamePlans.begin(), gamePlans.end(), [&chase](){
+    std::generate(gamePlans.begin(), gamePlans.end(), [](){
         GamePlan plan;
-        plan.chase = chase;
-        for(const Player& candidate : chase->candidates())
-            plan.percentages[candidate.index()] = {};
+        plan.percentage = {};
         return plan;
     } );
     double winningAverageWin = 0;
@@ -77,8 +75,8 @@ void dumpSinglePlayerResults(SinglePlayerAnalysis& analysis, std::string const& 
             chaserFactor += analysis.analysisRange.chaserFactorParams[2])
         {
             SimpleResult& result = analysis.results[{playerEquity, chaserFactor}];
-            auto percentages = result.gamePlan.percentages.begin()->second;
-            outfile << result.avgWin << "€|" << percentages.gamble * 100 << "%|" << percentages.stay * 100 << "%|" << (1 - percentages.gamble - percentages.stay) * 100 << "%;";
+            auto percentage = result.gamePlan.percentage;
+            outfile << result.avgWin << "€|" << percentage.gamble * 100 << "%|" << percentage.stay * 100 << "%|" << (1 - percentage.gamble - percentage.stay) * 100 << "%;";
         }
         outfile << '\n';
     }

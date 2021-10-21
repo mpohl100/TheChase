@@ -24,10 +24,7 @@ struct GamePlan { // Chromosome class
         void normalize();
         std::string toString() const;
     };
-
-    //       Player index
-    std::map<size_t, Percentages> percentages;
-    std::shared_ptr<Chase> chase;
+    Percentages percentage;
 };
 
 }

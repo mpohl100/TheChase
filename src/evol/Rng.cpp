@@ -9,11 +9,13 @@ Rng::Rng()
 
 std::stack<int> Rng::fetchUniform(int from, int to, size_t num) const
 {
-    std::random_device rd;
-    std::uniform_int_distribution<int> dist{from, to};
+    static thread_local std::mt19937 gen;
+    double from_d = double(from);
+    double to_d = double(to) - std::numeric_limits<double>::min();
+    std::uniform_real_distribution<double> dist{from_d, to_d};
     std::stack<int> ret;
     for(size_t i = 0; i < num; ++i)
-        ret.push(dist(rd));
+        ret.push(int(dist(gen)));
     return ret;
 }
 
