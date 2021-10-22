@@ -30,10 +30,10 @@ int main(int argc, char** argv)
     chase::simpleChaseAnalysis(options);
 #else
     chase::TeamPlayerAnalysis analysis;
-    analysis.analysisRange.playerPercentages = {0.7, 0.4, 0.4, 0.7};
+    analysis.analysisRange.playerPercentages = {0.7, 0.5, 0.5, 0.7};
     analysis.analysisRange.chaserFactorParams = {{2.0, 5.0, 1.0}};
     chase::teamPlayerAnalysisPar(analysis);
-    chase::dumpTeamPlayerResults(analysis, "TeamPlayerAnalysis2.csv");
+    chase::dumpTeamPlayerResults(analysis, "TeamPlayerAnalysis3.csv");
 #endif
     return 0;
 }
