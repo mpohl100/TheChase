@@ -57,14 +57,13 @@ void TeamAnalysisPar::initTransformations()
     for(size_t i = 0; i < calculations_.size() - 1; ++i)
     {
         auto func = [i, this](){
-            TeamGamePlan sharedPlan;
-                            
+            TeamGamePlan sharedPlan;               
             for(size_t j = 0; j <= i; j++)
             {
                 size_t index = 0;
                 for(auto& thisCalc : calculations_[j].subCalcs())
                 {
-                    SimpleTeamResult result = calculations_[i].result(index++);
+                    SimpleTeamResult result = calculations_[j].result(index++);
                     auto& options = std::get<TeamAnalysisOptionsPar>(thisCalc.args()).options;
                     sharedPlan.plan[options.path] = result.gamePlan.plan[options.path];
                 }  
