@@ -106,8 +106,9 @@ void dumpTeamPlayerResults(TeamPlayerAnalysis& analysis, std::string const& file
             chaserFactor += analysis.analysisRange.chaserFactorParams[2])
         {
             SimpleResult& result = analysis.results[{path, chaserFactor}];
-            auto percentage = result.gamePlan.percentage;
-            outfile << result.avgWin << "€|" << percentage.gamble * 100 << "%|" << percentage.stay * 100 << "%|" << (1 - percentage.gamble - percentage.stay) * 100 << "%;";
+            const auto& percentage = result.gamePlan.percentage;
+            const auto& data = result.gamePlan.data;
+            outfile  << percentage.toStringShort() << data.toStringShort() << ";";
         }
         outfile << '\n';
     } 

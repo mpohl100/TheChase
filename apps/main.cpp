@@ -29,20 +29,37 @@ int main(int argc, char** argv)
     options.nbGenerations = 500;
     chase::simpleChaseAnalysis(options);
 #else
-    size_t i = 6;
-    std::vector<std::vector<double>> playerPercentages = {{0.6, 0.4, 0.4, 0.6},
-                                                          {0.6, 0.5, 0.5, 0.6},
-                                                          {0.6, 0.6, 0.6, 0.6},
-                                                          {0.5, 0.4, 0.4, 0.5},
-                                                          {0.5, 0.5, 0.5, 0.5},
-                                                          {0.4, 0.4, 0.4, 0.4}};
+    std::vector<std::vector<double>> playerPercentages = {{0.7, 0.4, 0.4, 0.4},
+                                                          {0.4, 0.7, 0.4, 0.4},
+                                                          {0.4, 0.4, 0.7, 0.4},
+                                                          {0.4, 0.4, 0.4, 0.7},
+                                                          {0.6, 0.4, 0.4, 0.4},
+                                                          {0.4, 0.6, 0.4, 0.4},
+                                                          {0.4, 0.4, 0.6, 0.4},
+                                                          {0.4, 0.4, 0.4, 0.6},
+                                                          {0.5, 0.4, 0.4, 0.4},
+                                                          {0.4, 0.5, 0.4, 0.4},
+                                                          {0.4, 0.4, 0.5, 0.4},
+                                                          {0.4, 0.4, 0.4, 0.5},
+                                                          {0.7, 0.5, 0.5, 0.5},
+                                                          {0.5, 0.7, 0.5, 0.5},
+                                                          {0.5, 0.5, 0.7, 0.5},
+                                                          {0.5, 0.5, 0.5, 0.7},
+                                                          {0.6, 0.5, 0.5, 0.5},
+                                                          {0.5, 0.6, 0.5, 0.5},
+                                                          {0.5, 0.5, 0.6, 0.5},
+                                                          {0.5, 0.5, 0.5, 0.6},
+                                                          {0.7, 0.6, 0.6, 0.6},
+                                                          {0.6, 0.7, 0.6, 0.6},
+                                                          {0.6, 0.6, 0.7, 0.6},
+                                                          {0.6, 0.6, 0.6, 0.7}};
     for(const auto& playerPercentage : playerPercentages)
     {
         chase::TeamPlayerAnalysis analysis;
         analysis.analysisRange.playerPercentages = playerPercentage;
         analysis.analysisRange.chaserFactorParams = {{2.0, 5.0, 1.0}};
         chase::teamPlayerAnalysisPar(analysis);
-        chase::dumpTeamPlayerResults(analysis, std::string("TeamPlayerAnalysis" + std::to_string(i++) + ".csv"));
+        chase::dumpTeamPlayerResults(analysis, std::string("Team" + chase::toStringPath(playerPercentage) + ".csv"));
     }
 #endif
     return 0;

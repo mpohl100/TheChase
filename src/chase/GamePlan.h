@@ -23,8 +23,18 @@ struct GamePlan { // Chromosome class
         size_t startingStep(int num) const;
         void normalize();
         std::string toString() const;
+        std::string toStringShort() const;
     };
     Percentages percentage;
+
+    struct Data{
+        double amountInitial = 0.0;
+        double amountGained = 0.0;
+        double amountAvg = 0.0;
+        double percentageWon = 0.0;
+        std::string toStringShort() const;
+    };
+    mutable Data data;
 };
 
 }

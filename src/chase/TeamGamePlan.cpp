@@ -19,16 +19,6 @@ void TeamGamePlan::mutate()
     plan[currentPath].mutate();
 }
 
-std::string toStringPath(std::vector<int> const& path)
-{
-    std::string ret = "[";
-    for(const auto& num : path)
-        ret += std::to_string(num) + "|";
-    ret = ret.substr(0, ret.size() - 1);
-    ret += "]";
-    return ret;
-}
-
 std::string TeamGamePlan::toString() const
 {
     auto it = plan.find(currentPath);

@@ -4,6 +4,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 
 namespace chase{
 
@@ -21,6 +22,17 @@ struct TeamGamePlan{
     std::string toString() const;
 };
 
-std::string toStringPath(std::vector<int> const& path);
+template<class T>
+std::string toStringPath(std::vector<T> const& path)
+{
+    if(path.empty())
+        return "";
+    std::string ret = "[";
+    for(const auto& num : path)
+        ret += std::to_string(num) + "|";
+    ret = ret.substr(0, ret.size() - 1);
+    ret += "]";
+    return ret;
+}
 
 }

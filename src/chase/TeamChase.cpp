@@ -43,10 +43,25 @@ double TeamChase::score(TeamGamePlan const& plan) const
     evol::Rng rng;
     if(not gameState_)
         createGameState(rng);
+    const GamePlan* gamePlan;
+    if( auto it = plan.plan.find(path_); it != plan.plan.end())
+        gamePlan = &it->second;
+    else
+        throw std::runtime_error("game plan of path not found in TeamGamePlan.");
     plan.currentPath = path_;
+    size_t numWon = 0;
     for(size_t i = 0; i < numRounds_; ++i)
-        ret += play(plan, rng);
-    return ret / double(numRounds_);
+    {
+        if(double result = play(plan, rng))
+        {
+            numWon++;
+            ret += play(plan, rng);
+        }
+    }
+    gamePlan->data.amountGained /= double(numRounds_);
+    gamePlan->data.amountAvg = ret / double(numRounds_);
+    gamePlan->data.percentageWon = double(numWon) / double(numRounds_);
+    return gamePlan->data.amountAvg;
 }
 
 double TeamChase::play(TeamGamePlan const& gamePlan, evol::Rng const& rng) const
@@ -55,19 +70,27 @@ double TeamChase::play(TeamGamePlan const& gamePlan, evol::Rng const& rng) const
     GameState gameState = *gameState_;
     std::vector<int> path = path_;
     numGames_++;
+    const GamePlan* currentPlan;
+    if( auto it = gamePlan.plan.find(path); it != gamePlan.plan.end())
+        currentPlan = &it->second;
+    else
+        throw std::runtime_error("game plan of path not found in TeamGamePlan.");
+    currentPlan->data.amountInitial = gameState.result;
     for(size_t i = path_.size(); i < candidates_.size(); ++i)
     {
         const Player& candidate = candidates_[i];
         double playerAmount = playQuickRound(candidate, rng);
-        GamePlan plan;
+        const GamePlan* plan;
         if( auto it = gamePlan.plan.find(path); it != gamePlan.plan.end())
-            plan = it->second;
+            plan = &it->second;
         else
             throw std::runtime_error("game plan of path not found in TeamGamePlan.");
-        size_t step = playEscapeRound(candidate, plan, rng, playerAmount);
+        size_t step = playEscapeRound(candidate, *plan, rng, playerAmount);
         path.push_back(step);
         if(step > 0) 
         {
+            if(i == path_.size())
+                currentPlan->data.amountGained += playerAmount;
             gameState.result += playerAmount;
             gameState.finalPlayers.push_back(candidate);
         }

@@ -65,4 +65,14 @@ std::string GamePlan::Percentages::toString() const
     return ret;
 }
 
+std::string GamePlan::Percentages::toStringShort() const
+{
+    return "[" + std::to_string(gamble*100) + "%|" + std::to_string(stay*100) + "%|" + std::to_string((1-gamble-stay)*100) + "%]";
+}
+
+std::string GamePlan::Data::toStringShort() const
+{
+    return "[" + std::to_string(amountInitial) +"€|" + std::to_string(amountGained) + "€|" + std::to_string(amountAvg)+ "€|" + std::to_string(percentageWon*100) + "%]";
+}
+
 }
