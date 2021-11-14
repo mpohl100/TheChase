@@ -18,8 +18,11 @@ SimpleResult simpleChaseAnalysis(SimpleAnalysisOptions const& options)
     } );
     double winningAverageWin = 0;
 
-
-    auto winningPopulation = evol::evolution(gamePlans, options.nbGenerations, *chase, winningAverageWin, options.logLevel);
+    evol::EvolutionOptions evolOpts;
+    evolOpts.num_generations = options.nbGenerations;
+    evolOpts.log_level = options.logLevel;
+    evolOpts.out = &std::cout;
+    auto winningPopulation = evol::evolution(gamePlans, *chase, winningAverageWin, evolOpts);
     //std::cout << "\nAvg. win " << winningAverageWin << ", \ngame plan: " << winningPopulation.front().toString() << '\n';
     return {winningPopulation.front(), winningAverageWin, chase->numGames()};
 }

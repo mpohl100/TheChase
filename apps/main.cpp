@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     options.nbGenerations = 500;
     chase::simpleChaseAnalysis(options);
 #else
-    std::vector<std::vector<double>> playerPercentages = {{0.7, 0.4, 0.4, 0.4},
+    std::vector<std::vector<double>> playerPercentages = {
                                                           {0.4, 0.7, 0.4, 0.4},
                                                           {0.4, 0.4, 0.7, 0.4},
                                                           {0.4, 0.4, 0.4, 0.7},
